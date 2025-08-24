@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Masdjid Qubah – Tenant Registration & Owner Dashboard</title>
+<style>
+  :root{
+    --brand:#075985; /* cyan-900-ish */
+    --accent:#0ea5e9; /* sky-500 */
+    --bg:#0b1220;
+    --card:#0f172aee;
+    --muted:#94a3b8;
+    --ok:#10b981;
+    --warn:#f59e0b;
+    --bad:#ef4444;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+    color:#fff; background: radial-gradient(1200px 600px at 80% -10%, #143a56 0%, #0b1220 45%, #090f1a 100%);
+    line-height:1.45; overflow-x:hidden; position:relative;
+  }
+  /* Page watermark */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwZTlhNWU5IiBzdHJva2Utd2lkdGg9IjIiIC8+PHRleHQgeD0iMTAwIiB5PSIxMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBlOWE1ZTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5DRU08L3RleHQ+PC9zdmc+');
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size: 60vmin;
+    opacity:0.06; pointer-events:none; filter:grayscale(100%);
+  }
+
+  header{
+    position:relative; overflow:hidden;
+    border-bottom:1px solid #0b2a3d; 
+    background: linear-gradient(180deg, rgba(14,165,233,0.12), rgba(14,165,233,0.03));
+    padding: 20px 0;
+  }
+  .hero{
+    display:grid; grid-template-columns: 120px 1fr; gap:16px; align-items:center;
+    max-width:1100px; margin:0 auto; padding:18px 16px 14px;
+  }
+  .logo{
+    width:120px; height:120px; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.35);
+    border:1px solid #0a2a40; background:#091522;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #0ea5e9;
+  }
+  .title h1{margin:0; font-size:clamp(20px,3.5vw,34px); letter-spacing:.2px}
+  .title p{margin:.35rem 0 0; color:var(--muted)}
+  .pill{
+    display:inline-block; padding:.25rem .6rem; border:1px solid #134b72;
+    background:#0b1c2c; border-radius:999px; color:#cbe7ff; font-size:.8rem; margin-top:.5rem
+  }
+
+  main{max-width:1100px; margin:18px auto; padding:0 16px 80px; display:grid; gap:18px}
+  .grid{display:grid; gap:18px}
+  @media(min-width:980px){ .grid{grid-template-columns: 1.2fr .9fr} }
+
+  .card{
+    background:var(--card); border:1px solid #1e293b; border-radius:18px; padding:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    backdrop-filter: blur(6px);
+  }
+  h2{margin:.25rem 0 1rem; font-size:1.2rem}
+  fieldset{border:1px dashed #1f3a53; border-radius:14px; padding:12px; margin:0 0 12px}
+  legend{padding:0 .5rem; color:#c2e6ff; font-weight:600}
+  label{display:block; font-size:.92rem; margin:.35rem 0 .15rem}
+  input, select, textarea, button{
+    font: inherit; color:#e6f4ff;
+  }
+  input, select, textarea{
+    width:100%; padding:.65rem .7rem; background:#091525; border:1px solid #1f3b57; border-radius:12px;
+    outline:none; transition:border .2s, box-shadow .2s;
+  }
+  input:focus, select:focus, textarea:focus{border-color:#2b87b8; box-shadow:0 0 0 3px rgba(14,165,233,.20)}
+  .row{display:grid; gap:10px}
+  @media(min-width:720px){ .row.two{grid-template-columns:1fr 1fr} .row.three{grid-template-columns:1fr 1fr 1fr} }
+
+  .muted{color:var(--muted); font-size:.9rem}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+  .btn{
+    appearance:none; border:1px solid transparent; border-radius:12px; padding:.7rem 1rem; cursor:pointer; font-weight:600;
+    background:linear-gradient(180deg,#0ea5e9,#0284c7); color:#03111d;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 20px rgba(2,132,199,.25);
+  }
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .btn.secondary{background:transparent; color:#d8f1ff; border-color:#2a4f70}
+  .tag{display:inline-block; padding:.2rem .5rem; border-radius:999px; border:1px solid #274e6d; color:#cbe7ff; font-size:.75rem}
+
+  /* Dashboard tables */
+  table{width:100%; border-collapse:separate; border-spacing:0; min-width:600px}
+  th,td{padding:.6rem .7rem; border-bottom:1px solid #1f2e43; text-align:left}
+  thead th{position:sticky; top:0; background:#0c1728; z-index:1; font-size:.9rem}
+  tbody tr:hover{background:#0b1a2b}
+  .status.ok{color:var(--ok)}
+  .status.warn{color:var(--warn)}
+  .status.bad{color:var(--bad)}
+
+  .tabs{display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap}
+  .tab{padding:.5rem .8rem; border:1px solid #284660; border-radius:999px; background:#0b1e30; cursor:pointer}
+  .tab.active{background:#0ea5e9; color:#062437; border-color:#0ea5e9; font-weight:700}
+
+  /* Terms Gate (must accept before entering data) */
+  .gate{
+    position:fixed; inset:0; background:rgba(2,6,23,.8); display:flex; align-items:center; justify-content:center; padding:18px; z-index:50;
+    backdrop-filter: blur(4px);
+  }
+  .gate .panel{
+    width:min(900px,95vw); max-height:88vh; overflow:auto; background:var(--card); border:1px solid #27455e; border-radius:18px; padding:16px;
+  }
+  .terms{
+    background:#071221; border:1px solid #223a53; border-radius:12px; padding:12px; color:#d9eeff; font-size:.95rem; max-height:46vh; overflow:auto;
+  }
+
+  /* Footer location */
+  footer{
+    position:fixed; left:0; right:0; bottom:0; padding:8px 14px; background:#071221cc; border-top:1px solid #16324a; color:#a7c8de;
+    font-size:.9rem; display:flex; gap:10px; align-items:center; justify-content:center;
+  }
+
+  /* Header image backdrop strip for extra "beauty" */
+  .banner{
+    position:absolute; inset:auto 0 -1px 0; height:6px;
+    background:linear-gradient(90deg, #0ea5e9, #22d3ee, #38bdf8, #0ea5e9);
+    filter:saturate(120%); opacity:.9;
+  }
+  .nowrap{white-space:nowrap}
+  
+  /* Mosque Header */
+  .mosque-header {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNDAwIDEwMGMyMDAgMCAzMDAgMTAwIDMwMCAzMDBIMTAwYzAtMjAwIDEwMC0zMDAgMzAwLTMwMHoiIGZpbGw9IiMwZTlhNWU5IiBvcGFjaXR5PSIwLjIiLz48L3N2Zz4=');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .mosque-header h1 {
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    color: white;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hero">
+    <div class="logo">
+      <!-- Mosque icon -->
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7V9H3V15C3 18.866 6.13401 22 10 22H14C17.866 22 21 18.866 21 15V9H22V7L12 2Z" fill="#0ea5e9"/>
+        <path d="M10 9H14V12H10V9Z" fill="white"/>
+        <path d="M6 9H8V12H6V9Z" fill="white"/>
+        <path d="M16 9H18V12H16V9Z" fill="white"/>
+      </svg>
+    </div>
+    <div class="title">
+      <h1>Masdjid Qubah – Tenant Registration</h1>
+      <p>Huye District, Goma Sector • Fixed Rent: <strong class="mono">10,000 FRW / month</strong> • Payment: <strong>MOMO only</strong></p>
+      <span class="pill">Institutions: UR • IPRC • CUR</span>
+    </div>
+  </div>
+  <div class="banner"></div>
+</header>
+
+<main>
+  <div class="mosque-header">
+    <h1>Masdjid Qubah Student Housing</h1>
+  </div>
+  
+  <div class="grid">
+    <!-- Registration -->
+    <section class="card">
+      <h2>Tenant Details (New Registration)</h2>
+      <p class="muted">Please complete all required fields. The rent is fixed at <span class="mono">10,000 FRW</span> and payment method is <strong>MOMO</strong>.</p>
+
+      <form id="tenantForm" autocomplete="on" novalidate>
+        <fieldset>
+          <legend>1) Personal Information</legend>
+          <div class="row two">
+            <div>
+              <label>Full name *</label>
+              <input required id="fullName" placeholder="e.g. UWIZEYE Aline" />
+            </div>
+            <div>
+              <label>Gender *</label>
+              <select required id="gender">
+                <option value="">Select…</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </div>
+          </div>
+          <div class="row two">
+            <div>
+              <label>Date of Birth *</label>
+              <input required id="dob" type="date" />
+            </div>
+            <div>
+              <label>Contact Number (Rwanda) *</label>
+              <input required id="phone" inputmode="numeric" 
+                     pattern="^(07\d{8}|\+2507\d{8})$" 
+                     placeholder="07XXXXXXXXXX or +2507XXXXXXXXXX" 
+                     title="Use 07XXXXXXXXXX or +2507XXXXXXXXXX" />
+            </div>
+          </div>
+          <div class="row two">
+            <div>
+              <label>ID Number *</label>
+              <input required id="idNo" class="mono" minlength="10" maxlength="20" placeholder="National ID / Student ID" />
+            </div>
+            <div>
+              <label>Email (optional)</label>
+              <input id="email" type="email" placeholder="name@example.com" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>2) Student Details</legend>
+          <div class="row two">
+            <div>
+              <label>Institution *</label>
+              <select required id="institution">
+                <option value="">Select…</option>
+                <option>UR</option>
+                <option>IPRC</option>
+                <option>CUR</option>
+              </select>
+            </div>
+            <div>
+              <label>Student ID Number *</label>
+              <input required id="studentId" class="mono" placeholder="e.g. UR22-XXXX" />
+            </div>
+          </div>
+          <div class="row two">
+            <div>
+              <label>Course / Program *</label>
+              <input required id="program" placeholder="e.g. Computer Engineering" />
+            </div>
+            <div>
+              <label>Year of Study *</label>
+              <select required id="yos">
+                <option value="">Select…</option>
+                <option>Year 1</option>
+                <option>Year 2</option>
+                <option>Year 3</option>
+                <option>Year 4</option>
+                <option>Year 5</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>3) Rental Details</legend>
+          <div class="row two">
+            <div>
+              <label>Room Name *</label>
+              <select required id="room">
+                <option value="">Select…</option>
+                <option>PRESIDANCY</option>
+                <option>CONGO</option>
+                <option>CENTRAL AFRICA</option>
+                <option>MIDDLE</option>
+              </select>
+            </div>
+            <div>
+              <label>Address of Rental Property</label>
+              <input id="address" placeholder="Huye, Goma Sector (optional)" />
+            </div>
+          </div>
+
+          <div class="row three">
+            <div>
+              <label>Rent Amount (Monthly)</label>
+              <input id="rent" class="mono" value="10000 FRW" readonly />
+            </div>
+            <div>
+              <label>Payment Method</label>
+              <input id="payMethod" class="mono" value="MOMO" readonly />
+            </div>
+            <div>
+              <label>MOMO Code (Phone to pay) *</label>
+              <input required id="momo" inputmode="numeric" 
+                     pattern="^(07\d{8}|\+2507\d{8})$" 
+                     placeholder="07XXXXXXXXXX or +2507XXXXXXXXXX" 
+                     title="Use 07XXXXXXXXXX or +2507XXXXXXXXXX" />
+            </div>
+          </div>
+
+          <div class="row three">
+            <div>
+              <label>Date of Move-in *</label>
+              <input required id="moveIn" type="date" />
+            </div>
+            <div>
+              <label>Expected Duration of Stay (months) *</label>
+              <input required id="duration" type="number" min="1" max="60" placeholder="e.g. 12" />
+            </div>
+            <div>
+              <label>Initial Months to Pay (required)</label>
+              <input id="initialMonths" type="number" min="2" value="2" />
+              <div class="muted">Per rules: pay 2 consecutive months when moving in.</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>4) Emergency Contact</legend>
+          <div class="row two">
+            <div>
+              <label>Name *</label>
+              <input required id="emName" />
+            </div>
+            <div>
+              <label>Relationship *</label>
+              <input required id="emRel" />
+            </div>
+          </div>
+          <div class="row two">
+            <div>
+              <label>Phone Number *</label>
+              <input required id="emPhone" inputmode="numeric" 
+                     pattern="^(07\d{8}|\+2507\d{8})$" 
+                     placeholder="07XXXXXXXXXX or +2507XXXXXXXXXX" 
+                     title="Use 07XXXXXXXXXX or +2507XXXXXXXXXX" />
+            </div>
+            <div>
+              <label>Address (optional)</label>
+              <input id="emAddr" />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button class="btn" id="submitBtn" type="submit" disabled>Submit Registration</button>
+          <button class="btn secondary" type="reset">Reset</button>
+          <span class="tag">Strong validation enabled</span>
+        </div>
+        <p class="muted">Your data is stored locally in this browser (Owner Dashboard → "Tenants").</p>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <section class="card">
+      <h2>Owner Dashboard</h2>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="list">Tenants</button>
+        <button class="tab" data-tab="pending">Pending</button>
+        <button class="tab" data-tab="months">Months Not Paid</button>
+      </div>
+
+      <div style="overflow:auto">
+        <div id="view-list">
+          <table id="tblTenants">
+            <thead>
+              <tr>
+                <th>Name</th><th>Room</th><th class="nowrap">Institution</th><th>Move-in</th><th>Paid Months</th><th class="nowrap">Months Owed</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="view-pending" style="display:none">
+          <table id="tblPending">
+            <thead>
+              <tr>
+                <th>Name</th><th>Room</th><th>Move-in</th><th class="nowrap">Months Owed</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="view-months" style="display:none">
+          <table id="tblMonths">
+            <thead>
+              <tr>
+                <th>Name</th><th>Room</th><th>Move-in</th><th class="nowrap">Months Since Move-in</th><th>Paid</th><th class="nowrap">Not Paid</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:.6rem">Tip: use the "Mark Month Paid" action after receiving MOMO.</p>
+    </section>
+  </div>
+</main>
+
+<!-- Terms Gate -->
+<div class="gate" id="gate">
+  <div class="panel">
+    <h2>Read & Accept Conditions to Continue</h2>
+    <div class="terms">
+      <ul>
+        <li>A tenant must pay <strong>10,000 FRW per month</strong>. The landlord may revise rent with 30 days' notice.</li>
+        <li>Tenant must declare the move-in date (day/month/year).</li>
+        <li>No adding/removing house items without permission of the authorities.</li>
+        <li>Obey government rules (keep the area clean, etc.).</li>
+        <li>Community duties: <em>Umuganda</em> (obligatory) and charity activity at Kabutare Hospital.</li>
+        <li>Tenants must pay garbage collection fees to the responsible entity.</li>
+        <li>Do not take any materials of CEM-HUYE without authorization (e.g., saucepans, plates, knives, hoes, cups…).</li>
+        <li>Keep rooms and surroundings clean; failure can lead to eviction after 15 days' notice.</li>
+        <li>Late rent without accepted reason → 7-Day Notice to Pay or Quit.</li>
+        <li><strong>At move-in: pay 2 consecutive months.</strong></li>
+      </ul>
+    </div>
+    <label style="display:flex; gap:.6rem; align-items:center; margin-top:.8rem">
+      <input type="checkbox" id="agree" /> <span>I have read and agree to the above conditions.</span>
+    </label>
+    <div class="actions">
+      <button class="btn" id="acceptBtn" disabled>Accept & Continue</button>
+      <button class="btn secondary" id="viewOnlyBtn">View Only</button>
+    </div>
+    <p class="muted">You must accept to enable form submission.</p>
+  </div>
+</div>
+
+<footer>
+  <div>Owner: <strong>MASDJID QUBAH</strong> — Huye District, Goma Sector • Tel: <span class="mono">(+250) 786159466</span> • Email: <span class="mono">cem_unr@yahoo.fr</span> / <span class="mono">cemurhuyecampus@gmail.com</span></div>
+</footer>
+
+<script>
+  // ---------- UTILITIES ----------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  function monthDiff(from, to){ // inclusive months difference (count current month)
+    const a = new Date(from.getFullYear(), from.getMonth(), 1);
+    const b = new Date(to.getFullYear(), to.getMonth(), 1);
+    const diff = (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth()) + 1;
+    return Math.max(0, diff);
+  }
+
+  function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+
+  function saveTenants(list){ localStorage.setItem('mq_tenants', JSON.stringify(list)); }
+  function loadTenants(){ try{ return JSON.parse(localStorage.getItem('mq_tenants')||'[]'); }catch(e){ return []; } }
+
+  // ---------- TERMS GATE ----------
+  const gate = $('#gate');
+  const agree = $('#agree');
+  const acceptBtn = $('#acceptBtn');
+  const submitBtn = $('#submitBtn');
+  const viewOnlyBtn = $('#viewOnlyBtn');
+
+  agree.addEventListener('change', ()=> { acceptBtn.disabled = !agree.checked; });
+
+  acceptBtn.addEventListener('click', ()=>{
+    gate.style.display='none';
+    submitBtn.disabled=false;
+  });
+  viewOnlyBtn.addEventListener('click', ()=>{ gate.style.display='none'; /* still disabled to prevent submission */ });
+
+  // ---------- FORM ----------
+  const form = $('#tenantForm');
+
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    if(submitBtn.disabled){ alert('Please accept the conditions first.'); return; }
+    // native validation
+    if(!form.checkValidity()){
+      form.reportValidity();
+      return;
+    }
+
+    const moveInStr = $('#moveIn').value;
+    const moveIn = new Date(moveInStr);
+    if(Number($('#initialMonths').value||0) < 2){
+      alert('Initial months to pay must be at least 2 (per rules).');
+      return;
+    }
+    // Build tenant record
+    const t = {
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+
+      fullName: $('#fullName').value.trim(),
+      gender: $('#gender').value,
+      dob: $('#dob').value,
+      phone: $('#phone').value.trim(),
+      idNo: $('#idNo').value.trim(),
+      email: $('#email').value.trim(),
+
+      institution: $('#institution').value,
+      studentId: $('#studentId').value.trim(),
+      program: $('#program').value.trim(),
+      yos: $('#yos').value,
+
+      address: $('#address').value.trim(),
+      room: $('#room').value,
+      rent: 10000,
+      payMethod: 'MOMO',
+      momo: $('#momo').value.trim(),
+      moveIn: moveInStr,
+      duration: Number($('#duration').value),
+
+      emergency: {
+        name: $('#emName').value.trim(),
+        relationship: $('#emRel').value.trim(),
+        phone: $('#emPhone').value.trim(),
+        address: $('#emAddr').value.trim()
+      },
+
+      payments: [] // list of ISO month strings "YYYY-MM-01"
+    };
+
+    // On submission, automatically register the first N months as paid if initial months provided
+    const initMonths = Number($('#initialMonths').value||0);
+    const d0 = new Date(moveIn.getFullYear(), moveIn.getMonth(), 1);
+    for(let i=0;i<initMonths;i++){
+      const d = new Date(d0.getFullYear(), d0.getMonth()+i, 1);
+      t.payments.push(d.toISOString().slice(0,10));
+    }
+
+    const tenants = loadTenants();
+    tenants.push(t);
+    saveTenants(tenants);
+
+    alert('Registration saved. Tenant added to Owner Dashboard.');
+    form.reset();
+  });
+
+  // ---------- DASHBOARD ----------
+  const tabsEl = $('#tabs');
+  const views = {
+    list: $('#view-list'),
+    pending: $('#view-pending'),
+    months: $('#view-months')
+  };
+  tabsEl.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    $$('.tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    Object.values(views).forEach(v=>v.style.display='none');
+    const key = btn.dataset.tab;
+    views[key].style.display='';
+    renderAll();
+  });
+
+  function monthsSinceMoveIn(t){
+    return monthDiff(new Date(t.moveIn), today());
+  }
+  function monthsPaid(t){ return t.payments.length; }
+  function monthsOwed(t){ return Math.max(0, monthsSinceMoveIn(t) - monthsPaid(t)); }
+
+  function renderTenants(){
+    const tbody = $('#tblTenants tbody');
+    const tenants = loadTenants();
+    tbody.innerHTML = '';
+    tenants.forEach(t=>{
+      const tr = document.createElement('tr');
+      const owed = monthsOwed(t);
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(t.fullName)}</strong><br><span class="muted mono">${escapeHtml(t.phone)}</span></td>
+        <td>${escapeHtml(t.room)}</td>
+        <td>${escapeHtml(t.institution)}</td>
+        <td class="mono">${escapeHtml(t.moveIn)}</td>
+        <td class="mono">${monthsPaid(t)}</td>
+        <td class="mono">${owed}</td>
+        <td>
+          <button class="btn" data-act="pay" data-id="${t.id}" style="padding:.35rem .6rem; font-size:.85rem">Mark Month Paid</button>
+          <button class="btn secondary" data-act="del" data-id="${t.id}" style="padding:.35rem .6rem; font-size:.85rem">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.addEventListener('click', onTenantAction);
+  }
+
+  function onTenantAction(e){
+    const btn = e.target.closest('button[data-act]');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const act = btn.dataset.act;
+    let tenants = loadTenants();
+    const t = tenants.find(x=>x.id===id);
+    if(!t) return;
+
+    if(act==='pay'){
+      // find next unpaid month
+      const base = new Date(new Date(t.moveIn).getFullYear(), new Date(t.moveIn).getMonth(), 1);
+      const paidSet = new Set(t.payments);
+      let next = null;
+      for(let i=0;i<240;i++){
+        const d = new Date(base.getFullYear(), base.getMonth()+i, 1);
+        const iso = d.toISOString().slice(0,10);
+        if(!paidSet.has(iso)){
+          next = iso; break;
+        }
+      }
+      if(!next){ alert('All months already marked as paid.'); return; }
+      t.payments.push(next);
+      saveTenants(tenants);
+      renderAll();
+    } else if(act==='del'){
+      if(confirm('Remove this tenant?')) {
+        tenants = tenants.filter(x=>x.id!==id);
+        saveTenants(tenants);
+        renderAll();
+      }
+    }
+  }
+
+  function renderPending(){
+    const tbody = $('#tblPending tbody');
+    const tenants = loadTenants().filter(t=>monthsOwed(t)>0);
+    tbody.innerHTML = '';
+    tenants.forEach(t=>{
+      const owed = monthsOwed(t);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(t.fullName)}</strong></td>
+        <td>${escapeHtml(t.room)}</td>
+        <td class="mono">${escapeHtml(t.moveIn)}</td>
+        <td class="mono">${owed}</td>
+        <td><span class="status ${owed>=3?'bad':(owed>=1?'warn':'ok')}">${owed>=3?'Critical':(owed>=1?'Pending':'OK')}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderMonths(){
+    const tbody = $('#tblMonths tbody');
+    const tenants = loadTenants();
+    tbody.innerHTML = '';
+    tenants.forEach(t=>{
+      const since = monthsSinceMoveIn(t);
+      const paid = monthsPaid(t);
+      const owed = monthsOwed(t);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(t.fullName)}</strong></td>
+        <td>${escapeHtml(t.room)}</td>
+        <td class="mono">${escapeHtml(t.moveIn)}</td>
+        <td class="mono">${since}</td>
+        <td class="mono">${paid}</td>
+        <td class="mono">${owed}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderAll(){
+    renderTenants();
+    renderPending();
+    renderMonths();
+  }
+
+  function escapeHtml(s){ return (s??'').toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+  // Initial render
+  renderAll();
+
+  // Keep footer on top of content (avoid overlap on very short pages)
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.style.minHeight = '100vh';
+  });
+</script>
+</body>
+</html>
